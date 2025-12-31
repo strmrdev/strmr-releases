@@ -1,8 +1,10 @@
 {
-  "version": "1.0.30-beta",
-  "versionCode": 1000302,
-  "releaseDate": "2025-12-31T01:36:20Z",
-  "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.0.30/STRMR-1.0.30-beta.apk",
-  "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.0.30",
-  "minAndroidSdk": 30
+  "stable": {
+    "version": "1.0.31",
+    "versionCode": 1000312,
+    "releaseDate": "2025-12-31T10:42:14Z",
+    "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.0.31/STRMR-1.0.31.apk",
+    "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.0.31",
+    "minAndroidSdk": 30
+  }
 }
