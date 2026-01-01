@@ -14,11 +14,11 @@
   "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.0.33",
   "minAndroidSdk": 30,
   "dev": {
-    "version": "1.0.33-dev-beta",
-    "versionCode": 1000331,
-    "releaseDate": "2025-12-31T20:10:55Z",
-    "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.0.33-dev/STRMR-1.0.33-dev.apk",
-    "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.0.33-dev",
+    "version": "1.0.34-dev-beta",
+    "versionCode": 1000341,
+    "releaseDate": "2026-01-01T07:49:09Z",
+    "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.0.34-dev/STRMR-1.0.34-dev.apk",
+    "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.0.34-dev",
     "minAndroidSdk": 30
   }
 }
