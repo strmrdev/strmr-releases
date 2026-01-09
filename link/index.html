@@ -96,6 +96,11 @@
             background: #1f1f23;
             color: #fff;
             text-transform: uppercase;
+            caret-color: transparent;
+        }
+
+        .code-input input::selection {
+            background: transparent;
         }
 
         .code-input input:focus {
@@ -221,12 +226,12 @@
                 <div class="step-number">1</div>
                 <h3>Enter the code from your TV</h3>
                 <div class="code-input">
-                    <input type="text" maxlength="1" data-index="0" autofocus>
-                    <input type="text" maxlength="1" data-index="1">
-                    <input type="text" maxlength="1" data-index="2">
-                    <input type="text" maxlength="1" data-index="3">
-                    <input type="text" maxlength="1" data-index="4">
-                    <input type="text" maxlength="1" data-index="5">
+                    <input type="text" maxlength="1" data-index="0" inputmode="text" autocomplete="off" autocapitalize="characters" autofocus>
+                    <input type="text" maxlength="1" data-index="1" inputmode="text" autocomplete="off" autocapitalize="characters">
+                    <input type="text" maxlength="1" data-index="2" inputmode="text" autocomplete="off" autocapitalize="characters">
+                    <input type="text" maxlength="1" data-index="3" inputmode="text" autocomplete="off" autocapitalize="characters">
+                    <input type="text" maxlength="1" data-index="4" inputmode="text" autocomplete="off" autocapitalize="characters">
+                    <input type="text" maxlength="1" data-index="5" inputmode="text" autocomplete="off" autocapitalize="characters">
                 </div>
                 <button class="btn btn-primary" id="btn-verify-code" disabled>Verify Code</button>
                 <div id="code-status" class="status hidden"></div>
@@ -301,40 +306,78 @@
             updateCode();
         }
 
-        // Code input handling
+        // Code input handling - robust for mobile and desktop
         codeInputs.forEach((input, index) => {
+            // Handle all input including mobile keyboards
             input.addEventListener('input', (e) => {
-                const value = e.target.value.toUpperCase();
-                e.target.value = value;
+                let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-                if (value && index < 5) {
-                    codeInputs[index + 1].focus();
+                // If multiple characters were entered (mobile autocomplete), distribute them
+                if (value.length > 1) {
+                    const chars = value.split('');
+                    for (let i = 0; i < chars.length && (index + i) < 6; i++) {
+                        codeInputs[index + i].value = chars[i];
+                    }
+                    const nextIndex = Math.min(index + chars.length, 5);
+                    codeInputs[nextIndex].focus();
+                } else {
+                    e.target.value = value;
+                    if (value && index < 5) {
+                        codeInputs[index + 1].focus();
+                    }
                 }
                 updateCode();
             });
 
+            // Handle keyboard navigation
             input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                if (e.key === 'Backspace') {
+                    if (!e.target.value && index > 0) {
+                        codeInputs[index - 1].focus();
+                        codeInputs[index - 1].value = '';
+                    }
+                    updateCode();
+                } else if (e.key === 'ArrowLeft' && index > 0) {
                     codeInputs[index - 1].focus();
+                } else if (e.key === 'ArrowRight' && index < 5) {
+                    codeInputs[index + 1].focus();
+                } else if (/^[a-zA-Z0-9]$/.test(e.key)) {
+                    // For regular key presses, clear and set value
+                    e.preventDefault();
+                    e.target.value = e.key.toUpperCase();
+                    if (index < 5) {
+                        codeInputs[index + 1].focus();
+                    }
+                    updateCode();
                 }
             });
 
+            // Handle paste
             input.addEventListener('paste', (e) => {
                 e.preventDefault();
-                const paste = (e.clipboardData || window.clipboardData).getData('text').toUpperCase().replace(/\s/g, '');
+                const paste = (e.clipboardData || window.clipboardData).getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '');
                 for (let i = 0; i < Math.min(paste.length, 6); i++) {
                     codeInputs[i].value = paste[i];
                 }
                 updateCode();
                 if (paste.length >= 6) {
                     codeInputs[5].focus();
+                } else {
+                    codeInputs[Math.min(paste.length, 5)].focus();
                 }
+            });
+
+            // Select all on focus for easy replacement
+            input.addEventListener('focus', () => {
+                input.select();
             });
         });
 
         function updateCode() {
             currentCode = Array.from(codeInputs).map(i => i.value).join('');
-            btnVerifyCode.disabled = currentCode.length !== 6;
+            const isComplete = currentCode.length === 6;
+            btnVerifyCode.disabled = !isComplete;
+            console.log('Code updated:', currentCode, 'Complete:', isComplete);
         }
 
         // Verify code
