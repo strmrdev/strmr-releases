@@ -410,10 +410,14 @@
                         .eq('status', 'pending');
 
                     if (updateResult.error) {
-                        status.textContent = 'Failed to link: ' + updateResult.error.message;
+                        console.error('Update error:', updateResult.error);
+                        status.textContent = 'Failed to link: ' + updateResult.error.message + ' (Code: ' + updateResult.error.code + ')';
                         status.className = 'status error';
                         return;
                     }
+
+                    // Check if any rows were actually updated
+                    console.log('Update result:', updateResult);
 
                     // Success
                     document.getElementById('step-code').style.display = 'none';
