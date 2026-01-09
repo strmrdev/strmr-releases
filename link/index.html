@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Link Your TV - STRMR</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -75,58 +75,36 @@
 
         .step h3 {
             font-size: 16px;
-            margin-bottom: 12px;
-        }
-
-        /* Code input wrapper */
-        .code-input-wrapper {
-            position: relative;
             margin-bottom: 16px;
         }
 
-        /* Hidden actual input */
-        .code-input-hidden {
-            position: absolute;
-            opacity: 0;
+        /* Simple single input */
+        #code-input {
             width: 100%;
-            height: 56px;
-            top: 0;
-            left: 0;
-            z-index: 10;
-            font-size: 24px;
-            letter-spacing: 48px;
-            padding-left: 20px;
-        }
-
-        /* Display boxes */
-        .code-display {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-        }
-
-        .code-box {
-            width: 48px;
-            height: 56px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
+            max-width: 280px;
+            height: 64px;
+            text-align: center;
+            font-size: 32px;
             font-weight: bold;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            letter-spacing: 12px;
             border: 2px solid #3f3f46;
-            border-radius: 8px;
+            border-radius: 12px;
             background: #1f1f23;
             color: #fff;
             text-transform: uppercase;
-            transition: border-color 0.2s;
+            margin-bottom: 16px;
+            padding: 0 16px;
         }
 
-        .code-box.active {
+        #code-input:focus {
+            outline: none;
             border-color: #FF1010;
         }
 
-        .code-box.filled {
-            border-color: #4f4f56;
+        #code-input::placeholder {
+            color: #555;
+            letter-spacing: 8px;
         }
 
         .btn {
@@ -150,7 +128,8 @@
         }
 
         .btn-primary:disabled {
-            background: #666;
+            background: #444;
+            color: #888;
             cursor: not-allowed;
         }
 
@@ -226,24 +205,14 @@
             <div class="step">
                 <div class="step-number">1</div>
                 <h3>Enter the code from your TV</h3>
-                <div class="code-input-wrapper">
-                    <input type="text"
-                           id="code-input"
-                           class="code-input-hidden"
-                           maxlength="6"
-                           autocomplete="off"
-                           autocapitalize="characters"
-                           spellcheck="false"
-                           autofocus>
-                    <div class="code-display">
-                        <div class="code-box" data-index="0"></div>
-                        <div class="code-box" data-index="1"></div>
-                        <div class="code-box" data-index="2"></div>
-                        <div class="code-box" data-index="3"></div>
-                        <div class="code-box" data-index="4"></div>
-                        <div class="code-box" data-index="5"></div>
-                    </div>
-                </div>
+                <input type="text"
+                       id="code-input"
+                       maxlength="6"
+                       placeholder="ABC123"
+                       autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="characters"
+                       spellcheck="false">
                 <button class="btn btn-primary" id="btn-verify-code" disabled>Verify Code</button>
                 <div id="code-status" class="status hidden"></div>
             </div>
@@ -292,71 +261,50 @@
         // Initialize Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // State
-        let currentCode = '';
-
         // DOM elements
         const stepCode = document.getElementById('step-code');
         const stepSignin = document.getElementById('step-signin');
         const stepSuccess = document.getElementById('step-success');
         const codeInput = document.getElementById('code-input');
-        const codeBoxes = document.querySelectorAll('.code-box');
         const btnVerifyCode = document.getElementById('btn-verify-code');
         const btnGoogleSignin = document.getElementById('btn-google-signin');
         const codeStatus = document.getElementById('code-status');
         const signinStatus = document.getElementById('signin-status');
+
+        // State
+        let currentCode = '';
 
         // Check for code in URL params
         const urlParams = new URLSearchParams(window.location.search);
         const codeFromUrl = urlParams.get('code');
         if (codeFromUrl && codeFromUrl.length === 6) {
             codeInput.value = codeFromUrl.toUpperCase();
-            updateDisplay();
+            currentCode = codeFromUrl.toUpperCase();
+            btnVerifyCode.disabled = false;
         }
 
-        // Focus input when clicking on display boxes
-        document.querySelector('.code-input-wrapper').addEventListener('click', () => {
-            codeInput.focus();
+        // Handle input
+        codeInput.addEventListener('input', function() {
+            // Filter and uppercase
+            let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            this.value = value;
+            currentCode = value;
+
+            // Enable button when 6 characters
+            btnVerifyCode.disabled = (value.length !== 6);
         });
 
-        // Handle input changes
-        codeInput.addEventListener('input', (e) => {
-            // Filter to only alphanumeric and uppercase
-            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            if (value.length > 6) value = value.slice(0, 6);
-            e.target.value = value;
-            updateDisplay();
-        });
-
-        // Handle keyboard events
-        codeInput.addEventListener('keydown', (e) => {
+        // Enter key to verify
+        codeInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && currentCode.length === 6) {
                 btnVerifyCode.click();
             }
         });
 
-        // Update display boxes to show current input
-        function updateDisplay() {
-            const value = codeInput.value;
-            currentCode = value;
-
-            codeBoxes.forEach((box, i) => {
-                box.textContent = value[i] || '';
-                box.classList.remove('active', 'filled');
-
-                if (i < value.length) {
-                    box.classList.add('filled');
-                } else if (i === value.length) {
-                    box.classList.add('active');
-                }
-            });
-
-            // Enable/disable button
-            btnVerifyCode.disabled = value.length !== 6;
-        }
-
         // Verify code
-        btnVerifyCode.addEventListener('click', async () => {
+        btnVerifyCode.addEventListener('click', async function() {
+            if (currentCode.length !== 6) return;
+
             showStatus(codeStatus, 'Verifying code...', 'loading');
             btnVerifyCode.disabled = true;
 
@@ -388,28 +336,29 @@
                 // Code is valid
                 showStatus(codeStatus, 'Code verified! Please sign in.', 'success');
 
-                // Move to sign-in step
-                setTimeout(() => {
+                setTimeout(function() {
                     stepCode.classList.add('hidden');
                     stepSignin.classList.remove('hidden');
                 }, 1000);
 
             } catch (err) {
-                console.error('Error verifying code:', err);
+                console.error('Error:', err);
                 showStatus(codeStatus, 'An error occurred. Please try again.', 'error');
                 btnVerifyCode.disabled = false;
             }
         });
 
         // Google Sign-In
-        btnGoogleSignin.addEventListener('click', async () => {
+        btnGoogleSignin.addEventListener('click', async function() {
             showStatus(signinStatus, 'Redirecting to Google...', 'loading');
 
             try {
-                const { data, error } = await supabase.auth.signInWithOAuth({
+                const redirectUrl = window.location.origin + window.location.pathname + '?code=' + currentCode;
+
+                const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                        redirectTo: window.location.href.split('?')[0] + '?code=' + currentCode
+                        redirectTo: redirectUrl
                     }
                 });
 
@@ -417,23 +366,21 @@
                     showStatus(signinStatus, 'Sign-in failed: ' + error.message, 'error');
                 }
             } catch (err) {
-                console.error('Error signing in:', err);
+                console.error('Error:', err);
                 showStatus(signinStatus, 'An error occurred. Please try again.', 'error');
             }
         });
 
-        // Check for auth callback
+        // Check for auth callback on page load
         async function checkAuthCallback() {
-            const { data: { session } } = await supabase.auth.getSession();
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
 
-            if (session && codeFromUrl) {
-                // User just signed in and we have the code
-                stepCode.classList.add('hidden');
-                stepSignin.classList.remove('hidden');
-                showStatus(signinStatus, 'Linking your device...', 'loading');
+                if (session && codeFromUrl) {
+                    stepCode.classList.add('hidden');
+                    stepSignin.classList.remove('hidden');
+                    showStatus(signinStatus, 'Linking your device...', 'loading');
 
-                try {
-                    // Update the device_auth_codes table with the session tokens
                     const { error } = await supabase
                         .from('device_auth_codes')
                         .update({
@@ -446,7 +393,7 @@
                         .eq('status', 'pending');
 
                     if (error) {
-                        console.error('Error updating code:', error);
+                        console.error('Error:', error);
                         showStatus(signinStatus, 'Failed to link device: ' + error.message, 'error');
                         return;
                     }
@@ -455,26 +402,19 @@
                     stepCode.classList.add('hidden');
                     stepSignin.classList.add('hidden');
                     stepSuccess.classList.remove('hidden');
-
-                } catch (err) {
-                    console.error('Error linking device:', err);
-                    showStatus(signinStatus, 'An error occurred. Please try again.', 'error');
                 }
-            } else if (session && !codeFromUrl) {
-                // User is signed in but no code - show code entry
-                stepCode.classList.remove('hidden');
+            } catch (err) {
+                console.error('Auth check error:', err);
             }
         }
 
         function showStatus(element, message, type) {
             element.textContent = message;
             element.className = 'status ' + type;
-            element.classList.remove('hidden');
         }
 
         // Initialize
         checkAuthCallback();
-        updateDisplay();
     </script>
 </body>
 </html>
