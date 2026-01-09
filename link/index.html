@@ -391,12 +391,21 @@
                 var session = sessionResult.data.session;
 
                 if (session && codeFromUrl) {
+                    console.log('=== AUTH CALLBACK ===');
+                    console.log('Session found:', session.user.email);
+                    console.log('Code from URL:', codeFromUrl);
+
                     document.getElementById('step-code').style.display = 'none';
                     document.getElementById('step-signin').style.display = 'block';
 
                     var status = document.getElementById('signin-status');
                     status.textContent = 'Linking your device...';
                     status.className = 'status loading';
+
+                    console.log('Attempting database update...');
+                    console.log('user_id:', session.user.id);
+                    console.log('access_token length:', session.access_token ? session.access_token.length : 'null');
+                    console.log('refresh_token length:', session.refresh_token ? session.refresh_token.length : 'null');
 
                     var updateResult = await supabase
                         .from('device_auth_codes')
@@ -407,17 +416,27 @@
                             status: 'completed'
                         })
                         .eq('code', codeFromUrl)
-                        .eq('status', 'pending');
+                        .eq('status', 'pending')
+                        .select();  // Add .select() to get the updated rows back
+
+                    console.log('Update result:', JSON.stringify(updateResult, null, 2));
 
                     if (updateResult.error) {
                         console.error('Update error:', updateResult.error);
-                        status.textContent = 'Failed to link: ' + updateResult.error.message + ' (Code: ' + updateResult.error.code + ')';
+                        status.textContent = 'Failed to link: ' + updateResult.error.message;
                         status.className = 'status error';
                         return;
                     }
 
                     // Check if any rows were actually updated
-                    console.log('Update result:', updateResult);
+                    if (!updateResult.data || updateResult.data.length === 0) {
+                        console.error('No rows updated! Code may not exist or status is not pending');
+                        status.textContent = 'Failed: Code not found or already used. Please try again.';
+                        status.className = 'status error';
+                        return;
+                    }
+
+                    console.log('SUCCESS! Updated row:', updateResult.data[0]);
 
                     // Success
                     document.getElementById('step-code').style.display = 'none';
