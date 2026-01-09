@@ -371,8 +371,17 @@
 
         // Check auth on page load
         async function checkAuth() {
+            console.log('checkAuth() called');
+            console.log('Current URL:', window.location.href);
+
             var params = new URLSearchParams(window.location.search);
             codeFromUrl = params.get('code');
+            console.log('Code from URL params:', codeFromUrl);
+
+            // Check for hash fragment (Supabase OAuth returns tokens in hash)
+            var hashParams = new URLSearchParams(window.location.hash.substring(1));
+            var accessTokenInHash = hashParams.get('access_token');
+            console.log('Access token in hash:', accessTokenInHash ? 'YES (' + accessTokenInHash.length + ' chars)' : 'NO');
 
             // Pre-fill code if in URL
             if (codeFromUrl && codeFromUrl.length === 6) {
@@ -388,7 +397,10 @@
                 );
 
                 var sessionResult = await supabase.auth.getSession();
+                console.log('Session result:', sessionResult);
                 var session = sessionResult.data.session;
+                console.log('Session exists:', !!session);
+                console.log('Code exists:', !!codeFromUrl);
 
                 if (session && codeFromUrl) {
                     console.log('=== AUTH CALLBACK ===');
