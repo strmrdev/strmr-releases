@@ -78,17 +78,39 @@
             margin-bottom: 12px;
         }
 
-        .code-input {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
+        /* Code input wrapper */
+        .code-input-wrapper {
+            position: relative;
             margin-bottom: 16px;
         }
 
-        .code-input input {
+        /* Hidden actual input */
+        .code-input-hidden {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 56px;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            font-size: 24px;
+            letter-spacing: 48px;
+            padding-left: 20px;
+        }
+
+        /* Display boxes */
+        .code-display {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .code-box {
             width: 48px;
             height: 56px;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 24px;
             font-weight: bold;
             border: 2px solid #3f3f46;
@@ -96,16 +118,15 @@
             background: #1f1f23;
             color: #fff;
             text-transform: uppercase;
-            caret-color: transparent;
+            transition: border-color 0.2s;
         }
 
-        .code-input input::selection {
-            background: transparent;
-        }
-
-        .code-input input:focus {
-            outline: none;
+        .code-box.active {
             border-color: #FF1010;
+        }
+
+        .code-box.filled {
+            border-color: #4f4f56;
         }
 
         .btn {
@@ -177,26 +198,6 @@
             display: none !important;
         }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 24px 0;
-            color: #666;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #3f3f46;
-        }
-
-        .divider span {
-            padding: 0 16px;
-            font-size: 12px;
-        }
-
         .success-screen {
             text-align: center;
         }
@@ -225,13 +226,23 @@
             <div class="step">
                 <div class="step-number">1</div>
                 <h3>Enter the code from your TV</h3>
-                <div class="code-input">
-                    <input type="text" maxlength="1" data-index="0" inputmode="text" autocomplete="off" autocapitalize="characters" autofocus>
-                    <input type="text" maxlength="1" data-index="1" inputmode="text" autocomplete="off" autocapitalize="characters">
-                    <input type="text" maxlength="1" data-index="2" inputmode="text" autocomplete="off" autocapitalize="characters">
-                    <input type="text" maxlength="1" data-index="3" inputmode="text" autocomplete="off" autocapitalize="characters">
-                    <input type="text" maxlength="1" data-index="4" inputmode="text" autocomplete="off" autocapitalize="characters">
-                    <input type="text" maxlength="1" data-index="5" inputmode="text" autocomplete="off" autocapitalize="characters">
+                <div class="code-input-wrapper">
+                    <input type="text"
+                           id="code-input"
+                           class="code-input-hidden"
+                           maxlength="6"
+                           autocomplete="off"
+                           autocapitalize="characters"
+                           spellcheck="false"
+                           autofocus>
+                    <div class="code-display">
+                        <div class="code-box" data-index="0"></div>
+                        <div class="code-box" data-index="1"></div>
+                        <div class="code-box" data-index="2"></div>
+                        <div class="code-box" data-index="3"></div>
+                        <div class="code-box" data-index="4"></div>
+                        <div class="code-box" data-index="5"></div>
+                    </div>
                 </div>
                 <button class="btn btn-primary" id="btn-verify-code" disabled>Verify Code</button>
                 <div id="code-status" class="status hidden"></div>
@@ -274,7 +285,7 @@
     </div>
 
     <script>
-        // Supabase configuration - REPLACE WITH YOUR VALUES
+        // Supabase configuration
         const SUPABASE_URL = 'https://mnepsobmilyuodjgpcic.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uZXBzb2JtaWx5dW9kamdwY2ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MTQ1NTUsImV4cCI6MjA4MzQ5MDU1NX0.yE2xuXDh7FtsD-4vNdDzND9KsVm-8pXzr_0KpYe1ICw';
 
@@ -283,13 +294,13 @@
 
         // State
         let currentCode = '';
-        let codeRecord = null;
 
         // DOM elements
         const stepCode = document.getElementById('step-code');
         const stepSignin = document.getElementById('step-signin');
         const stepSuccess = document.getElementById('step-success');
-        const codeInputs = document.querySelectorAll('.code-input input');
+        const codeInput = document.getElementById('code-input');
+        const codeBoxes = document.querySelectorAll('.code-box');
         const btnVerifyCode = document.getElementById('btn-verify-code');
         const btnGoogleSignin = document.getElementById('btn-google-signin');
         const codeStatus = document.getElementById('code-status');
@@ -299,85 +310,49 @@
         const urlParams = new URLSearchParams(window.location.search);
         const codeFromUrl = urlParams.get('code');
         if (codeFromUrl && codeFromUrl.length === 6) {
-            // Pre-fill the code
-            for (let i = 0; i < 6; i++) {
-                codeInputs[i].value = codeFromUrl[i].toUpperCase();
-            }
-            updateCode();
+            codeInput.value = codeFromUrl.toUpperCase();
+            updateDisplay();
         }
 
-        // Code input handling - robust for mobile and desktop
-        codeInputs.forEach((input, index) => {
-            // Handle all input including mobile keyboards
-            input.addEventListener('input', (e) => {
-                let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-
-                // If multiple characters were entered (mobile autocomplete), distribute them
-                if (value.length > 1) {
-                    const chars = value.split('');
-                    for (let i = 0; i < chars.length && (index + i) < 6; i++) {
-                        codeInputs[index + i].value = chars[i];
-                    }
-                    const nextIndex = Math.min(index + chars.length, 5);
-                    codeInputs[nextIndex].focus();
-                } else {
-                    e.target.value = value;
-                    if (value && index < 5) {
-                        codeInputs[index + 1].focus();
-                    }
-                }
-                updateCode();
-            });
-
-            // Handle keyboard navigation
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace') {
-                    if (!e.target.value && index > 0) {
-                        codeInputs[index - 1].focus();
-                        codeInputs[index - 1].value = '';
-                    }
-                    updateCode();
-                } else if (e.key === 'ArrowLeft' && index > 0) {
-                    codeInputs[index - 1].focus();
-                } else if (e.key === 'ArrowRight' && index < 5) {
-                    codeInputs[index + 1].focus();
-                } else if (/^[a-zA-Z0-9]$/.test(e.key)) {
-                    // For regular key presses, clear and set value
-                    e.preventDefault();
-                    e.target.value = e.key.toUpperCase();
-                    if (index < 5) {
-                        codeInputs[index + 1].focus();
-                    }
-                    updateCode();
-                }
-            });
-
-            // Handle paste
-            input.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const paste = (e.clipboardData || window.clipboardData).getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '');
-                for (let i = 0; i < Math.min(paste.length, 6); i++) {
-                    codeInputs[i].value = paste[i];
-                }
-                updateCode();
-                if (paste.length >= 6) {
-                    codeInputs[5].focus();
-                } else {
-                    codeInputs[Math.min(paste.length, 5)].focus();
-                }
-            });
-
-            // Select all on focus for easy replacement
-            input.addEventListener('focus', () => {
-                input.select();
-            });
+        // Focus input when clicking on display boxes
+        document.querySelector('.code-input-wrapper').addEventListener('click', () => {
+            codeInput.focus();
         });
 
-        function updateCode() {
-            currentCode = Array.from(codeInputs).map(i => i.value).join('');
-            const isComplete = currentCode.length === 6;
-            btnVerifyCode.disabled = !isComplete;
-            console.log('Code updated:', currentCode, 'Complete:', isComplete);
+        // Handle input changes
+        codeInput.addEventListener('input', (e) => {
+            // Filter to only alphanumeric and uppercase
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (value.length > 6) value = value.slice(0, 6);
+            e.target.value = value;
+            updateDisplay();
+        });
+
+        // Handle keyboard events
+        codeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && currentCode.length === 6) {
+                btnVerifyCode.click();
+            }
+        });
+
+        // Update display boxes to show current input
+        function updateDisplay() {
+            const value = codeInput.value;
+            currentCode = value;
+
+            codeBoxes.forEach((box, i) => {
+                box.textContent = value[i] || '';
+                box.classList.remove('active', 'filled');
+
+                if (i < value.length) {
+                    box.classList.add('filled');
+                } else if (i === value.length) {
+                    box.classList.add('active');
+                }
+            });
+
+            // Enable/disable button
+            btnVerifyCode.disabled = value.length !== 6;
         }
 
         // Verify code
@@ -411,7 +386,6 @@
                 }
 
                 // Code is valid
-                codeRecord = data;
                 showStatus(codeStatus, 'Code verified! Please sign in.', 'success');
 
                 // Move to sign-in step
@@ -454,6 +428,8 @@
 
             if (session && codeFromUrl) {
                 // User just signed in and we have the code
+                stepCode.classList.add('hidden');
+                stepSignin.classList.remove('hidden');
                 showStatus(signinStatus, 'Linking your device...', 'loading');
 
                 try {
@@ -485,7 +461,7 @@
                     showStatus(signinStatus, 'An error occurred. Please try again.', 'error');
                 }
             } else if (session && !codeFromUrl) {
-                // User is signed in but no code - show sign-in step for manual code entry
+                // User is signed in but no code - show code entry
                 stepCode.classList.remove('hidden');
             }
         }
@@ -496,8 +472,9 @@
             element.classList.remove('hidden');
         }
 
-        // Check on load
+        // Initialize
         checkAuthCallback();
+        updateDisplay();
     </script>
 </body>
 </html>
