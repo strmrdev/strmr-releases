@@ -212,8 +212,9 @@
                        autocomplete="off"
                        autocorrect="off"
                        autocapitalize="characters"
-                       spellcheck="false">
-                <button class="btn btn-primary" id="btn-verify-code" disabled>Verify Code</button>
+                       spellcheck="false"
+                       oninput="handleInput(this)">
+                <button class="btn btn-primary" id="btn-verify-code" disabled onclick="verifyCode()">Verify Code</button>
                 <div id="code-status" class="status hidden"></div>
             </div>
         </div>
@@ -227,7 +228,7 @@
             <div class="step">
                 <div class="step-number">2</div>
                 <h3>Sign in with your Google account</h3>
-                <button class="btn btn-google" id="btn-google-signin">
+                <button class="btn btn-google" id="btn-google-signin" onclick="googleSignIn()">
                     <svg class="google-icon" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -254,134 +255,150 @@
     </div>
 
     <script>
-        // Supabase configuration
-        const SUPABASE_URL = 'https://mnepsobmilyuodjgpcic.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uZXBzb2JtaWx5dW9kamdwY2ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MTQ1NTUsImV4cCI6MjA4MzQ5MDU1NX0.yE2xuXDh7FtsD-4vNdDzND9KsVm-8pXzr_0KpYe1ICw';
+        // Global state
+        var currentCode = '';
+        var codeFromUrl = null;
 
-        // Initialize Supabase client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // DOM elements
-        const stepCode = document.getElementById('step-code');
-        const stepSignin = document.getElementById('step-signin');
-        const stepSuccess = document.getElementById('step-success');
-        const codeInput = document.getElementById('code-input');
-        const btnVerifyCode = document.getElementById('btn-verify-code');
-        const btnGoogleSignin = document.getElementById('btn-google-signin');
-        const codeStatus = document.getElementById('code-status');
-        const signinStatus = document.getElementById('signin-status');
-
-        // State
-        let currentCode = '';
-
-        // Check for code in URL params
-        const urlParams = new URLSearchParams(window.location.search);
-        const codeFromUrl = urlParams.get('code');
-        if (codeFromUrl && codeFromUrl.length === 6) {
-            codeInput.value = codeFromUrl.toUpperCase();
-            currentCode = codeFromUrl.toUpperCase();
-            btnVerifyCode.disabled = false;
-        }
-
-        // Handle input
-        codeInput.addEventListener('input', function() {
-            // Filter and uppercase
-            let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            this.value = value;
+        // Input handler - called from oninput attribute
+        function handleInput(el) {
+            var value = el.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            el.value = value;
             currentCode = value;
 
-            // Enable button when 6 characters
-            btnVerifyCode.disabled = (value.length !== 6);
-        });
-
-        // Enter key to verify
-        codeInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && currentCode.length === 6) {
-                btnVerifyCode.click();
+            var btn = document.getElementById('btn-verify-code');
+            if (value.length === 6) {
+                btn.disabled = false;
+                btn.style.background = '#FF1010';
+                btn.style.color = '#fff';
+                btn.style.cursor = 'pointer';
+            } else {
+                btn.disabled = true;
+                btn.style.background = '#444';
+                btn.style.color = '#888';
+                btn.style.cursor = 'not-allowed';
             }
-        });
+        }
 
-        // Verify code
-        btnVerifyCode.addEventListener('click', async function() {
+        // Verify button click
+        async function verifyCode() {
             if (currentCode.length !== 6) return;
 
-            showStatus(codeStatus, 'Verifying code...', 'loading');
-            btnVerifyCode.disabled = true;
+            var btn = document.getElementById('btn-verify-code');
+            var status = document.getElementById('code-status');
+
+            status.textContent = 'Verifying code...';
+            status.className = 'status loading';
+            btn.disabled = true;
 
             try {
-                const { data, error } = await supabase
+                var supabase = window.supabase.createClient(
+                    'https://mnepsobmilyuodjgpcic.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uZXBzb2JtaWx5dW9kamdwY2ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MTQ1NTUsImV4cCI6MjA4MzQ5MDU1NX0.yE2xuXDh7FtsD-4vNdDzND9KsVm-8pXzr_0KpYe1ICw'
+                );
+
+                var result = await supabase
                     .from('device_auth_codes')
                     .select('*')
                     .eq('code', currentCode)
                     .single();
 
-                if (error || !data) {
-                    showStatus(codeStatus, 'Invalid code. Please check and try again.', 'error');
-                    btnVerifyCode.disabled = false;
+                if (result.error || !result.data) {
+                    status.textContent = 'Invalid code. Please check and try again.';
+                    status.className = 'status error';
+                    btn.disabled = false;
                     return;
                 }
 
-                if (data.status === 'expired') {
-                    showStatus(codeStatus, 'This code has expired. Please generate a new one on your TV.', 'error');
-                    btnVerifyCode.disabled = false;
+                if (result.data.status === 'expired') {
+                    status.textContent = 'This code has expired. Please generate a new one on your TV.';
+                    status.className = 'status error';
+                    btn.disabled = false;
                     return;
                 }
 
-                if (data.status === 'completed') {
-                    showStatus(codeStatus, 'This code has already been used.', 'error');
-                    btnVerifyCode.disabled = false;
+                if (result.data.status === 'completed') {
+                    status.textContent = 'This code has already been used.';
+                    status.className = 'status error';
+                    btn.disabled = false;
                     return;
                 }
 
-                // Code is valid
-                showStatus(codeStatus, 'Code verified! Please sign in.', 'success');
+                status.textContent = 'Code verified! Please sign in.';
+                status.className = 'status success';
 
                 setTimeout(function() {
-                    stepCode.classList.add('hidden');
-                    stepSignin.classList.remove('hidden');
+                    document.getElementById('step-code').style.display = 'none';
+                    document.getElementById('step-signin').style.display = 'block';
                 }, 1000);
 
             } catch (err) {
                 console.error('Error:', err);
-                showStatus(codeStatus, 'An error occurred. Please try again.', 'error');
-                btnVerifyCode.disabled = false;
+                status.textContent = 'An error occurred. Please try again.';
+                status.className = 'status error';
+                btn.disabled = false;
             }
-        });
+        }
 
-        // Google Sign-In
-        btnGoogleSignin.addEventListener('click', async function() {
-            showStatus(signinStatus, 'Redirecting to Google...', 'loading');
+        // Google sign in
+        async function googleSignIn() {
+            var status = document.getElementById('signin-status');
+            status.textContent = 'Redirecting to Google...';
+            status.className = 'status loading';
 
             try {
-                const redirectUrl = window.location.origin + window.location.pathname + '?code=' + currentCode;
+                var supabase = window.supabase.createClient(
+                    'https://mnepsobmilyuodjgpcic.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uZXBzb2JtaWx5dW9kamdwY2ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MTQ1NTUsImV4cCI6MjA4MzQ5MDU1NX0.yE2xuXDh7FtsD-4vNdDzND9KsVm-8pXzr_0KpYe1ICw'
+                );
 
-                const { error } = await supabase.auth.signInWithOAuth({
+                var redirectUrl = window.location.origin + window.location.pathname + '?code=' + currentCode;
+
+                var result = await supabase.auth.signInWithOAuth({
                     provider: 'google',
-                    options: {
-                        redirectTo: redirectUrl
-                    }
+                    options: { redirectTo: redirectUrl }
                 });
 
-                if (error) {
-                    showStatus(signinStatus, 'Sign-in failed: ' + error.message, 'error');
+                if (result.error) {
+                    status.textContent = 'Sign-in failed: ' + result.error.message;
+                    status.className = 'status error';
                 }
             } catch (err) {
                 console.error('Error:', err);
-                showStatus(signinStatus, 'An error occurred. Please try again.', 'error');
+                status.textContent = 'An error occurred. Please try again.';
+                status.className = 'status error';
             }
-        });
+        }
 
-        // Check for auth callback on page load
-        async function checkAuthCallback() {
+        // Check auth on page load
+        async function checkAuth() {
+            var params = new URLSearchParams(window.location.search);
+            codeFromUrl = params.get('code');
+
+            // Pre-fill code if in URL
+            if (codeFromUrl && codeFromUrl.length === 6) {
+                var input = document.getElementById('code-input');
+                input.value = codeFromUrl.toUpperCase();
+                handleInput(input);
+            }
+
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                var supabase = window.supabase.createClient(
+                    'https://mnepsobmilyuodjgpcic.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uZXBzb2JtaWx5dW9kamdwY2ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MTQ1NTUsImV4cCI6MjA4MzQ5MDU1NX0.yE2xuXDh7FtsD-4vNdDzND9KsVm-8pXzr_0KpYe1ICw'
+                );
+
+                var sessionResult = await supabase.auth.getSession();
+                var session = sessionResult.data.session;
 
                 if (session && codeFromUrl) {
-                    stepCode.classList.add('hidden');
-                    stepSignin.classList.remove('hidden');
-                    showStatus(signinStatus, 'Linking your device...', 'loading');
+                    document.getElementById('step-code').style.display = 'none';
+                    document.getElementById('step-signin').style.display = 'block';
 
-                    const { error } = await supabase
+                    var status = document.getElementById('signin-status');
+                    status.textContent = 'Linking your device...';
+                    status.className = 'status loading';
+
+                    var updateResult = await supabase
                         .from('device_auth_codes')
                         .update({
                             user_id: session.user.id,
@@ -392,29 +409,28 @@
                         .eq('code', codeFromUrl)
                         .eq('status', 'pending');
 
-                    if (error) {
-                        console.error('Error:', error);
-                        showStatus(signinStatus, 'Failed to link device: ' + error.message, 'error');
+                    if (updateResult.error) {
+                        status.textContent = 'Failed to link: ' + updateResult.error.message;
+                        status.className = 'status error';
                         return;
                     }
 
-                    // Success!
-                    stepCode.classList.add('hidden');
-                    stepSignin.classList.add('hidden');
-                    stepSuccess.classList.remove('hidden');
+                    // Success
+                    document.getElementById('step-code').style.display = 'none';
+                    document.getElementById('step-signin').style.display = 'none';
+                    document.getElementById('step-success').style.display = 'block';
                 }
             } catch (err) {
                 console.error('Auth check error:', err);
             }
         }
 
-        function showStatus(element, message, type) {
-            element.textContent = message;
-            element.className = 'status ' + type;
+        // Run on load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkAuth);
+        } else {
+            checkAuth();
         }
-
-        // Initialize
-        checkAuthCallback();
     </script>
 </body>
 </html>
