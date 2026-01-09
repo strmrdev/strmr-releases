@@ -327,8 +327,8 @@
                 status.className = 'status success';
 
                 setTimeout(function() {
-                    document.getElementById('step-code').style.display = 'none';
-                    document.getElementById('step-signin').style.display = 'block';
+                    document.getElementById('step-code').classList.add('hidden');
+                    document.getElementById('step-signin').classList.remove('hidden');
                 }, 1000);
 
             } catch (err) {
@@ -407,8 +407,8 @@
                     console.log('Session found:', session.user.email);
                     console.log('Code from URL:', codeFromUrl);
 
-                    document.getElementById('step-code').style.display = 'none';
-                    document.getElementById('step-signin').style.display = 'block';
+                    document.getElementById('step-code').classList.add('hidden');
+                    document.getElementById('step-signin').classList.remove('hidden');
 
                     var status = document.getElementById('signin-status');
                     status.textContent = 'Linking your device...';
@@ -450,10 +450,10 @@
 
                     console.log('SUCCESS! Updated row:', updateResult.data[0]);
 
-                    // Success
-                    document.getElementById('step-code').style.display = 'none';
-                    document.getElementById('step-signin').style.display = 'none';
-                    document.getElementById('step-success').style.display = 'block';
+                    // Success - use classList to work with CSS !important
+                    document.getElementById('step-code').classList.add('hidden');
+                    document.getElementById('step-signin').classList.add('hidden');
+                    document.getElementById('step-success').classList.remove('hidden');
                 }
             } catch (err) {
                 console.error('Auth check error:', err);
