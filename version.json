@@ -1,17 +1,17 @@
 {
   "stable": {
-    "version": "1.0.53-beta",
-    "versionCode": 1000531,
-    "releaseDate": "2026-01-11T01:51:41Z",
-    "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.0.53/STRMR-1.0.53.apk",
-    "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.0.53",
+    "version": "1.0.54-beta",
+    "versionCode": 1000541,
+    "releaseDate": "2026-01-11T02:55:34Z",
+    "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.0.54/STRMR-1.0.54.apk",
+    "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.0.54",
     "minAndroidSdk": 30
   },
-  "version": "1.0.53-beta",
-  "versionCode": 1000531,
-  "releaseDate": "2026-01-11T01:51:41Z",
-  "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.0.53/STRMR-1.0.53.apk",
-  "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.0.53",
+  "version": "1.0.54-beta",
+  "versionCode": 1000541,
+  "releaseDate": "2026-01-11T02:55:34Z",
+  "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.0.54/STRMR-1.0.54.apk",
+  "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.0.54",
   "minAndroidSdk": 30,
   "dev": {
     "version": "1.0.40-dev-beta",
