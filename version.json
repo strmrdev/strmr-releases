@@ -24,7 +24,7 @@
   "sideload": {
     "version": "1.1.0",
     "versionCode": 1010003,
-    "releaseDate": "2026-02-01T09:13:07Z",
+    "releaseDate": "2026-02-01T09:55:12Z",
     "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.1.0/STRMR-1.1.0.apk",
     "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.1.0",
     "minAndroidSdk": 30
