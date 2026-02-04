@@ -28,5 +28,13 @@
     "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.1.7/STRMR-1.1.7.apk",
     "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.1.7",
     "minAndroidSdk": 30
+  },
+  "sideload-dev": {
+    "version": "1.1.7-dev",
+    "versionCode": 1010072,
+    "releaseDate": "2026-02-04T06:32:30Z",
+    "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.1.7-dev/STRMR-1.1.7-dev.apk",
+    "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.1.7-dev",
+    "minAndroidSdk": 30
   }
 }
