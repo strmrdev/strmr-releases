@@ -22,11 +22,11 @@
     "minAndroidSdk": 30
   },
   "sideload": {
-    "version": "1.1.7",
-    "versionCode": 1010073,
-    "releaseDate": "2026-02-04T06:31:27Z",
-    "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.1.7/STRMR-1.1.7.apk",
-    "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.1.7",
+    "version": "1.1.8",
+    "versionCode": 1010083,
+    "releaseDate": "2026-02-04T07:32:03Z",
+    "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.1.8/STRMR-1.1.8.apk",
+    "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.1.8",
     "minAndroidSdk": 30
   },
   "sideload-dev": {
