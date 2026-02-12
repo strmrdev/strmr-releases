@@ -1,5 +1,5 @@
 {
-"stable": {
+  "stable": {
     "version": "1.0.99-beta",
     "versionCode": 1000991,
     "releaseDate": "2026-02-11T00:00:00Z",
@@ -22,11 +22,11 @@
     "minAndroidSdk": 30
   },
   "sideload": {
-    "version": "1.1.19",
-    "versionCode": 1010193,
-    "releaseDate": "2026-02-11T07:23:01Z",
-    "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.1.19/STRMR-1.1.19.apk",
-    "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.1.19",
+    "version": "1.1.20",
+    "versionCode": 1010203,
+    "releaseDate": "2026-02-12T03:06:43Z",
+    "apkUrl": "https://github.com/strmrdev/strmr-releases/releases/download/v1.1.20/STRMR-1.1.20.apk",
+    "releaseNotes": "https://github.com/strmrdev/strmr-releases/releases/tag/v1.1.20",
     "minAndroidSdk": 30
   },
   "sideload-dev": {
