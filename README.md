@@ -16,4 +16,4 @@ A modern Android TV streaming application for discovering and watching movies an
 )
 ![Total Downloads](https://img.shields.io/github/downloads/strmrdev/strmr-releases/total?style=flat&label=Total%20Downloads)
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J01UMQRI)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/strmrdev)
