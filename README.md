@@ -16,4 +16,4 @@ A modern Android TV streaming application for discovering and watching movies an
 )
 ![Total Downloads](https://img.shields.io/github/downloads/strmrdev/strmr-releases/total?style=flat&label=Total%20Downloads)
 
-<a href="https://www.buymeacoffee.com/strmr" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J01UMQRI)
